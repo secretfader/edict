@@ -1,6 +1,6 @@
 {
   "name": "edict",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Send email notifications... the official way.",
   "main": "build/index.js",
   "scripts": {
@@ -22,5 +22,17 @@
     "gulp-babel": "^4.0.0",
     "gulp-mocha": "^2.0.0",
     "nodemailer-mock-transport": "^1.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/originalmachine/edict.git"
+  },
+  "keywords": [
+    "email",
+    "nodemailer"
+  ],
+  "bugs": {
+    "url": "https://github.com/originalmachine/edict/issues"
+  },
+  "homepage": "https://github.com/originalmachine/edict"
 }
