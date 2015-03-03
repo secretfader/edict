@@ -27,8 +27,6 @@ var Edict = (function () {
           throw new Error("Please choose another template engine.");
         }
 
-        this.render = engines[options.engine];
-
         if (Object.keys(options).length) this.options = options;
 
         return this;
@@ -55,34 +53,49 @@ var Edict = (function () {
           }
         }
 
-        this.transport.use("compile", convert.htmlToText(options.text || {}));
+        this.transport.use("compile", convert.htmlToText(this.options.text || {}));
 
         return this;
       },
       writable: true,
       configurable: true
     },
-    send: {
-      value: function send(template, options, done) {
-        template = [template, this.options.ext].join(".");
-        template = [this.options.views, template].join("/");
+    prepare: {
+      value: function prepare(template, options) {
         options = options || {};
 
         var self = this,
-            context = assign({}, options);
+            context = assign({}, options),
+            src = undefined;
+
+        src = [path.join(this.options.views, template), this.options.ext].join(".");
 
         return new Promise(function (resolve, reject) {
-          self.render(template, context, function (err, html) {
+          engines[self.options.engine](src, context, function (err, data) {
             if (err) return reject(err);
-
-            context.html = html;
-
-            self.transport.sendMail(context, function (err, response) {
-              if (err) return reject(err);
-              resolve(response);
-            });
+            resolve([context, data, self.transport]);
           });
-        }).nodeify(done);
+        });
+      },
+      writable: true,
+      configurable: true
+    },
+    transmit: {
+      value: function transmit(context, rendered, transport) {
+        context.html = rendered;
+        return new Promise(function (resolve, reject) {
+          transport.sendMail(context, function (err, response) {
+            if (err) return reject(err);
+            resolve(response);
+          });
+        });
+      },
+      writable: true,
+      configurable: true
+    },
+    send: {
+      value: function send(template, options, done) {
+        return this.prepare(template, options).spread(this.transmit).nodeify(done);
       },
       writable: true,
       configurable: true
