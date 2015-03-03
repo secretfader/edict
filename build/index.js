@@ -7,9 +7,9 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 var path = require("path"),
     mailer = require("nodemailer"),
     convert = require("nodemailer-html-to-text"),
-    nunjucks = require("nunjucks"),
     assign = require("lodash.assign"),
-    Promise = require("bluebird");
+    Promise = require("bluebird"),
+    engines = require("consolidate");
 
 var Edict = (function () {
   function Edict() {
@@ -21,10 +21,13 @@ var Edict = (function () {
       value: function configure(options) {
         options = options || {};
         options.ext = options.ext || "html";
+        options.engine = options.engine || "nunjucks";
+
+        if ("function" !== typeof engines[options.engine]) {
+          throw new Error("Please choose another template engine.");
+        }
 
         if (Object.keys(options).length) this.options = options;
-
-        nunjucks.configure(this.options.views, {});
 
         return this;
       },
@@ -50,29 +53,49 @@ var Edict = (function () {
           }
         }
 
-        this.transport.use("compile", convert.htmlToText(options.text || {}));
+        this.transport.use("compile", convert.htmlToText(this.options.text || {}));
 
         return this;
       },
       writable: true,
       configurable: true
     },
-    send: {
-      value: function send(template, options, done) {
-        template = [template, this.options.ext].join(".");
+    prepare: {
+      value: function prepare(template, options) {
         options = options || {};
 
         var self = this,
-            context = assign({}, options);
+            context = assign({}, options),
+            src = undefined;
+
+        src = [path.join(this.options.views, template), this.options.ext].join(".");
 
         return new Promise(function (resolve, reject) {
-          context.html = nunjucks.render(template, context);
-
-          self.transport.sendMail(context, function (err, response) {
+          engines[self.options.engine](src, context, function (err, data) {
+            if (err) return reject(err);
+            resolve([context, data, self.transport]);
+          });
+        });
+      },
+      writable: true,
+      configurable: true
+    },
+    transmit: {
+      value: function transmit(context, rendered, transport) {
+        context.html = rendered;
+        return new Promise(function (resolve, reject) {
+          transport.sendMail(context, function (err, response) {
             if (err) return reject(err);
             resolve(response);
           });
-        }).nodeify(done);
+        });
+      },
+      writable: true,
+      configurable: true
+    },
+    send: {
+      value: function send(template, options, done) {
+        return this.prepare(template, options).spread(this.transmit).nodeify(done);
       },
       writable: true,
       configurable: true
