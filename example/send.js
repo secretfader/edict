@@ -2,7 +2,9 @@ var path  = require('path')
 ,   edict = require('../');
 
 edict.configure({
-  views: path.join(__dirname, 'views')
+  views: path.join(__dirname, 'views'),
+  ext: 'jade',
+  engine: 'jade'
 });
 
 edict.connect('Mandrill', {
@@ -12,7 +14,7 @@ edict.connect('Mandrill', {
   }
 });
 
-edict.send('user/welcome.html', {
+edict.send('user/hello', {
   to: 'Nicholas Young <nicholas@example.com>',
   from: 'Mixdown <support@example.com>',
   name: 'Nicholas',
