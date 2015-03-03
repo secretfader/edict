@@ -9,7 +9,7 @@ var path = require("path"),
     convert = require("nodemailer-html-to-text"),
     assign = require("lodash.assign"),
     Promise = require("bluebird"),
-    cons = require("consolidate");
+    engines = require("consolidate");
 
 var Edict = (function () {
   function Edict() {
@@ -21,11 +21,13 @@ var Edict = (function () {
       value: function configure(options) {
         options = options || {};
         options.ext = options.ext || "html";
-        options.templateEngine = options.templateEngine || "nunjucks";
+        options.engine = options.engine || "nunjucks";
 
-        if ("function" !== typeof cons[options.templateEngine]) {
-          throw new Error("unsupported template engine");
+        if ("function" !== typeof engines[options.engine]) {
+          throw new Error("Please choose another template engine.");
         }
+
+        this.render = engines[options.engine];
 
         if (Object.keys(options).length) this.options = options;
 
@@ -70,7 +72,7 @@ var Edict = (function () {
             context = assign({}, options);
 
         return new Promise(function (resolve, reject) {
-          cons[self.options.templateEngine](template, context, function (err, html) {
+          self.render(template, context, function (err, html) {
             if (err) return reject(err);
 
             context.html = html;

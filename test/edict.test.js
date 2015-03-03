@@ -49,7 +49,7 @@ describe('Edict', function () {
       edict.configure({
         views: path.join(__dirname, 'support'),
         from: 'SaaS App <app@example.com>',
-        templateEngine: 'jade',
+        engine: 'jade',
         ext: 'jade'
       });
 
