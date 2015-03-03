@@ -35,10 +35,12 @@ describe('Edict', function () {
     it('should send email', function (done) {
       edict.send('hello', {
         to: 'Nicholas Young <nicholas@example.com>',
-        name: 'Nicholas'
+        name: 'Nicholas',
+        subject: 'Notification'
       }).then(function (response) {
         expect(outgoing.length).to.equal(1);
         expect(outgoing[0].data.to).to.equal('Nicholas Young <nicholas@example.com>');
+        expect(outgoing[0].data.subject).to.equal('Notification');
         expect(outgoing[0].data.html).to.equal('Hi, Nicholas!\n');
         expect(outgoing[0].data.text).to.equal('Hi, Nicholas!');
         done();
