@@ -26,9 +26,13 @@ describe('Edict', function () {
   });
 
   describe('#send', function () {
-    it('should send email', function (done) {
-      var outgoing = edict.transport.transporter.sentMail;
+    var outgoing = edict.transport.transporter.sentMail;
 
+    beforeEach(function() {
+      outgoing.splice(0, outgoing.length);
+    });
+
+    it('should send email', function (done) {
       edict.send('hello', {
         to: 'Nicholas Young <nicholas@example.com>',
         name: 'Nicholas'
@@ -36,6 +40,25 @@ describe('Edict', function () {
         expect(outgoing.length).to.equal(1);
         expect(outgoing[0].data.to).to.equal('Nicholas Young <nicholas@example.com>');
         expect(outgoing[0].data.html).to.equal('Hi, Nicholas!\n');
+        expect(outgoing[0].data.text).to.equal('Hi, Nicholas!');
+        done();
+      }).catch(done);
+    });
+
+    it('should use custom template engine', function (done) {
+      edict.configure({
+        views: path.join(__dirname, 'support'),
+        from: 'SaaS App <app@example.com>',
+        templateEngine: 'jade',
+        ext: 'jade'
+      });
+
+      edict.send('hello', {
+        to: 'Nicholas Young <nicholas@example.com>',
+        name: 'Nicholas'
+      }).then(function (response) {
+        expect(outgoing.length).to.equal(1);
+        expect(outgoing[0].data.html).to.equal('Hi, Nicholas!');
         expect(outgoing[0].data.text).to.equal('Hi, Nicholas!');
         done();
       }).catch(done);
