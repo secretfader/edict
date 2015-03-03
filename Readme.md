@@ -22,6 +22,16 @@ edict.send('template', {
 
 For a full example, see the ```examples``` folder.
 
+## Contributing
+
+1. Fork the repository, and do all of your work in a feature branch.
+
+2. Don't change the API without notifying me. Breaking changes are totally fine, but we should establish a sane upgrade path first.
+
+3. Document and test your changes.
+
+4. Send that pull request!
+
 ## License
 
 Copyright (C) Original Machine LLC.
