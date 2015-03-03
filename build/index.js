@@ -7,9 +7,9 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 var path = require("path"),
     mailer = require("nodemailer"),
     convert = require("nodemailer-html-to-text"),
-    nunjucks = require("nunjucks"),
     assign = require("lodash.assign"),
-    Promise = require("bluebird");
+    Promise = require("bluebird"),
+    cons = require("consolidate");
 
 var Edict = (function () {
   function Edict() {
@@ -21,10 +21,13 @@ var Edict = (function () {
       value: function configure(options) {
         options = options || {};
         options.ext = options.ext || "html";
+        options.templateEngine = options.templateEngine || "nunjucks";
+
+        if ("function" !== typeof cons[options.templateEngine]) {
+          throw new Error("unsupported template engine");
+        }
 
         if (Object.keys(options).length) this.options = options;
-
-        nunjucks.configure(this.options.views, {});
 
         return this;
       },
@@ -60,17 +63,22 @@ var Edict = (function () {
     send: {
       value: function send(template, options, done) {
         template = [template, this.options.ext].join(".");
+        template = [this.options.views, template].join("/");
         options = options || {};
 
         var self = this,
             context = assign({}, options);
 
         return new Promise(function (resolve, reject) {
-          context.html = nunjucks.render(template, context);
-
-          self.transport.sendMail(context, function (err, response) {
+          cons[self.options.templateEngine](template, context, function (err, html) {
             if (err) return reject(err);
-            resolve(response);
+
+            context.html = html;
+
+            self.transport.sendMail(context, function (err, response) {
+              if (err) return reject(err);
+              resolve(response);
+            });
           });
         }).nodeify(done);
       },
