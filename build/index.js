@@ -46,7 +46,7 @@ var Edict = (function () {
           if ("undefined" === typeof service.sendMail) {
             this.transport = mailer.createTransport(service);
           } else {
-            this.transport = transport;
+            this.transport = service;
           }
         }
 
