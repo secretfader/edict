@@ -1,5 +1,7 @@
 # Edict
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/nicholaswyoung/edict.svg)](https://greenkeeper.io/)
+
 Send notifications the easy way.
 
 ## Configuration
